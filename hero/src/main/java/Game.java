@@ -12,11 +12,16 @@ import java.io.IOException;
 public class Game {
 
     Screen screen;
-    private int x = 10, y = 10;
+    private Arena arena;
+
+    private TerminalSize size = new TerminalSize(40, 20);
 
     public Game() {
+
+        arena = new Arena(size.getColumns(), size.getRows());
+
         try {
-            Terminal terminal = new DefaultTerminalFactory().setInitialTerminalSize(new TerminalSize(40, 20)).createTerminal();
+            Terminal terminal = new DefaultTerminalFactory().setInitialTerminalSize(size).createTerminal();
             screen = new TerminalScreen(terminal);
             screen.startScreen();             // screens must be started
             screen.setCursorPosition(null);   // we don't need a cursor
@@ -32,7 +37,8 @@ public class Game {
             try {
                 KeyStroke keyStroke = this.screen.readInput();
                 if (keyStroke.getKeyType() == KeyType.EOF) break;
-                this.processKey(keyStroke);
+                else if (keyStroke.getKeyType() == KeyType.Character && keyStroke.getCharacter() == 'q') this.screen.close();
+                else this.arena.processKey(keyStroke);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -40,46 +46,12 @@ public class Game {
     }
 
     private void draw() {
+        this.screen.clear();
+        this.arena.draw(this.screen.newTextGraphics());
         try {
-            screen.clear();
-            screen.setCharacter(x, y, TextCharacter.fromCharacter('X')[0]);
-            screen.refresh();
-        } catch(Exception e) {
+            this.screen.refresh();
+        } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private void processKey(KeyStroke key) {
-
-        switch (key.getKeyType()) {
-            case Character:
-                switch (key.getCharacter()) {
-                    case 'q':
-                    case 'Q':
-                        try {
-                            this.screen.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                }
-                break;
-            case ArrowDown:
-                this.y++;
-                break;
-            case ArrowUp:
-                this.y--;
-                break;
-            case ArrowLeft:
-                this.x--;
-                break;
-            case ArrowRight:
-                this.x++;
-                break;
-            default:
-                break;
-        }
-
-        System.out.println(key);
     }
 }
