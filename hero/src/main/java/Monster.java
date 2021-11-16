@@ -12,7 +12,7 @@ public class Monster extends Element {
     }
 
     public Position move() {
-        Random random = new Random();
+        Random random = new Random(System.nanoTime());
 
         int dx = random.nextInt(3) - 1;
         int dy = random.nextInt(3) - 1;

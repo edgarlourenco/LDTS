@@ -4,26 +4,36 @@ import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.input.KeyStroke;
 
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class Arena {
 
-    private int width, height;
-    private Hero hero;
-    private List<Wall> walls;
-    private List<Coin> coins;
-    private List<Monster> monsters;
+    private final int width;
+    private final int height;
+    private final Hero hero;
+    private final List<Wall> walls;
+    private final List<Coin> coins;
+    private final List<Monster> monsters;
+    private final List<Position> occupiedPositions;
 
     public Arena(int width, int height) {
         this.width = width;
         this.height = height;
 
         this.hero = new Hero(10, 10);
+
         this.walls = this.createWalls();
+
+        this.occupiedPositions = new ArrayList<>();
+        this.occupiedPositions.add(this.hero.getPos());
+
         this.coins = this.createCoins();
         this.monsters = this.createMonsters();
+
+        this.occupiedPositions.clear();
     }
 
     public void processKey(KeyStroke key) {
@@ -65,7 +75,7 @@ public class Arena {
         this.hero.draw(graphics);
 
         if (this.verifyMonsterCollisions()) {
-            System.out.println("You Lose");
+            System.out.println("You Lose"); //TODO: change end-game message
             System.exit(0);
         }
     }
@@ -108,16 +118,34 @@ public class Arena {
     private List<Coin> createCoins() {
         Random random = new Random();
         ArrayList<Coin> coins = new ArrayList<>();
-        for (int i = 0; i < 5; i++)
-            coins.add(new Coin(random.nextInt(this.width - 2) + 1, random.nextInt(this.height - 2) + 1));
+        for (int i = 0; i < 5; i++) {
+
+            int x, y;
+
+            do {
+                x = random.nextInt(this.width - 2) + 1;
+                y = random.nextInt(this.height - 2) + 1;
+            } while(this.occupiedPositions.contains(new Position(x, y)));
+
+            coins.add(new Coin(x, y));
+        }
         return coins;
     }
 
     private List<Monster> createMonsters() {
         Random random = new Random();
         ArrayList<Monster> monsters = new ArrayList<>();
-        for (int i = 0; i < 5; i++)
-            monsters.add(new Monster(random.nextInt(this.width - 2) + 1, random.nextInt(this.height - 2) + 1));
+        for (int i = 0; i < 5; i++) {
+
+            int x, y;
+
+            do {
+                x = random.nextInt(this.width - 2) + 1;
+                y = random.nextInt(this.height - 2) + 1;
+            } while(this.occupiedPositions.contains(new Position(x, y)));
+
+            monsters.add(new Monster(x, y));
+        }
         return monsters;
     }
 
@@ -134,7 +162,24 @@ public class Arena {
 
     private void moveMonsters() {
         for (Monster m : this.monsters) {
-            Position newPos = m.move();
+
+            Position newPos;
+
+            boolean validPos = true;
+
+            do {
+                newPos = m.move();
+
+                for (Monster mon : this.monsters) {
+                    if (mon == m) continue;
+
+                    if (newPos == mon.getPos()) {
+                        validPos = false;
+                        break;
+                    }
+                }
+            } while(!validPos);
+
             if (0 < newPos.getX() && newPos.getX() < this.width-1 && 0 < newPos.getY() && newPos.getY() < this.height-1)
                 m.setPos(newPos);
         }
