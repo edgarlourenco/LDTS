@@ -3,7 +3,7 @@ plugins {
     id 'application'
 }
 
-group 'feup.ldts.naapperas'
+group 'Hero'
 version '1.0-SNAPSHOT'
 
 repositories {
