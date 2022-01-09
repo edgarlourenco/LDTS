@@ -1,8 +1,0 @@
-out
-.idea
-*.iml
-gradle/
-settings.gradle
-gradlew*
-.gradle/
-build/
